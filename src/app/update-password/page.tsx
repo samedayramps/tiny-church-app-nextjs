@@ -2,15 +2,33 @@
 
 import { createClient } from '@/utils/supabase/client'
 import { useToast } from '@/hooks/use-toast'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 export default function UpdatePasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
+  const router = useRouter()
   const supabase = createClient()
+
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Invalid or expired reset link. Please try again."
+        })
+        router.push('/reset-password')
+      }
+    }
+    
+    checkSession()
+  }, [router, supabase.auth, toast])
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true)
@@ -47,7 +65,7 @@ export default function UpdatePasswordPage() {
         description: "Password updated successfully"
       })
       
-      redirect('/login')
+      router.push('/login')
     } catch {
       toast({
         variant: "destructive",
