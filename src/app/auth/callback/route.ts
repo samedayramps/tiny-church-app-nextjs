@@ -1,46 +1,25 @@
 import { createClient } from '@/utils/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
-  const code = requestUrl.searchParams.get('code')
   const token_hash = requestUrl.searchParams.get('token_hash')
   const type = requestUrl.searchParams.get('type') as 'recovery' | 'email' | null
   const next = requestUrl.searchParams.get('next') ?? '/'
+  const redirectTo = new URL(next, requestUrl.origin)
 
-  const supabase = await createClient()
-
-  // Handle OTP verification (for password reset)
   if (token_hash && type) {
-    const { data, error } = await supabase.auth.verifyOtp({
-      token_hash,
+    const supabase = await createClient()
+
+    const { error } = await supabase.auth.verifyOtp({
       type,
+      token_hash,
     })
-    
-    if (!error && data.session) {
-      // Successfully verified OTP and got a session
-      return NextResponse.redirect(new URL('/update-password', requestUrl.origin))
-    }
-
-    // If verification failed, redirect to error page
-    console.error('Verification error:', error)
-    return NextResponse.redirect(new URL('/error', requestUrl.origin))
-  }
-
-  // Handle code exchange (for other auth flows)
-  if (code) {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-    
-    if (error) {
-      console.error('Auth error:', error)
-      return NextResponse.redirect(new URL('/error', requestUrl.origin))
-    }
-
-    if (data.session) {
-      return NextResponse.redirect(new URL(next, requestUrl.origin))
+    if (!error) {
+      return NextResponse.redirect(redirectTo)
     }
   }
 
-  // If no code or token_hash, redirect to error page
-  return NextResponse.redirect(new URL('/error', requestUrl.origin))
+  // return the user to an error page with some instructions
+  return NextResponse.redirect(new URL('/auth/auth-code-error', requestUrl.origin))
 } 
