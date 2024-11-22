@@ -2,17 +2,13 @@
 
 import { useToast } from '@/hooks/use-toast'
 import { resetPassword } from './actions'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { LoadingButton } from '@/components/ui/loading-button'
 
 export default function ResetPasswordPage() {
-  const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
 
   async function handleSubmit(formData: FormData) {
-    setIsLoading(true)
-    
     try {
       const result = await resetPassword(formData)
       
@@ -26,8 +22,8 @@ export default function ResetPasswordPage() {
       }
 
       toast({
-        title: "Success",
-        description: result.message
+        title: "Check your email",
+        description: result.message,
       })
     } catch {
       toast({
@@ -35,8 +31,6 @@ export default function ResetPasswordPage() {
         title: "Error",
         description: "Something went wrong. Please try again."
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -57,13 +51,9 @@ export default function ResetPasswordPage() {
               required
             />
           </div>
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Loading...' : 'Send Reset Link'}
-          </Button>
+          <LoadingButton>
+            Send Reset Link
+          </LoadingButton>
         </form>
       </div>
     </div>

@@ -3,12 +3,12 @@
 import { createClient } from '@/utils/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { useRouter } from 'next/navigation'
+import { Icons } from "@/components/icons"
 
 export default function UpdatePasswordPage() {
-  const [isLoading, setIsLoading] = useState(false)
   const [isVerified, setIsVerified] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
@@ -23,7 +23,7 @@ export default function UpdatePasswordPage() {
         console.error('Session error:', error)
         toast({
           variant: "destructive",
-          title: "Error",
+          title: "Session Error",
           description: "Failed to verify session. Please try again."
         })
         router.push('/reset-password')
@@ -33,7 +33,7 @@ export default function UpdatePasswordPage() {
       if (!session) {
         toast({
           variant: "destructive",
-          title: "Error",
+          title: "Invalid Link",
           description: "Invalid or expired reset link. Please request a new one."
         })
         router.push('/reset-password')
@@ -55,8 +55,6 @@ export default function UpdatePasswordPage() {
       })
       return
     }
-
-    setIsLoading(true)
     
     const password = formData.get('password') as string
     const confirmPassword = formData.get('confirmPassword') as string
@@ -67,7 +65,6 @@ export default function UpdatePasswordPage() {
         title: "Error",
         description: "Passwords do not match"
       })
-      setIsLoading(false)
       return
     }
 
@@ -101,13 +98,14 @@ export default function UpdatePasswordPage() {
         title: "Error",
         description: "Failed to update password. Please try again."
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 
   if (!isVerified) {
-    return <div>Verifying session...</div>
+    return <div className="flex justify-center items-center min-h-screen">
+      <Icons.spinner className="h-6 w-6 animate-spin" />
+      <span className="ml-2">Verifying session...</span>
+    </div>
   }
 
   return (
@@ -139,13 +137,9 @@ export default function UpdatePasswordPage() {
               required
             />
           </div>
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Updating...' : 'Update Password'}
-          </Button>
+          <LoadingButton>
+            Update Password
+          </LoadingButton>
         </form>
       </div>
     </div>
