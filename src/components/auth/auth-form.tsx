@@ -6,18 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { toast } from "@/hooks/use-toast"
-import { Icons } from "@/components/icons"
+import { useToast } from "@/hooks/use-toast"
+import { LoadingButton } from "@/components/ui/loading-button"
 import { authFormSchema } from "@/app/login/schema"
 
 interface AuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -25,9 +16,9 @@ interface AuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
   action: (data: z.infer<typeof authFormSchema>) => Promise<{ message?: string } | void>
 }
 
-export function AuthForm({ type, action, ...props }: AuthFormProps) {
+export function AuthForm({ type, action }: AuthFormProps) {
   const router = useRouter()
-  const [isLoading, setIsLoading] = React.useState<boolean>(false)
+  const { toast } = useToast()
 
   const form = useForm<z.infer<typeof authFormSchema>>({
     resolver: zodResolver(authFormSchema),
@@ -38,8 +29,6 @@ export function AuthForm({ type, action, ...props }: AuthFormProps) {
   })
 
   async function onSubmit(values: z.infer<typeof authFormSchema>) {
-    setIsLoading(true)
-
     try {
       const result = await action(values)
       
@@ -59,53 +48,53 @@ export function AuthForm({ type, action, ...props }: AuthFormProps) {
         title: "Error",
         description: error instanceof Error ? error.message : "Something went wrong",
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 
   return (
-    <div className="grid gap-6" {...props}>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="name@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <div className="space-y-2">
+        <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          Email
+        </label>
+        <Input
+          id="email"
+          placeholder="name@example.com"
+          type="email"
+          autoCapitalize="none"
+          autoComplete="email"
+          autoCorrect="off"
+          {...form.register("email")}
+        />
+        {form.formState.errors.email && (
+          <p className="text-sm text-destructive">
+            {form.formState.errors.email.message}
+          </p>
+        )}
+      </div>
+      {type !== "reset" && (
+        <div className="space-y-2">
+          <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Password
+          </label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete={type === "login" ? "current-password" : "new-password"}
+            {...form.register("password")}
           />
-          {type !== "reset" && (
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {form.formState.errors.password && (
+            <p className="text-sm text-destructive">
+              {form.formState.errors.password.message}
+            </p>
           )}
-          <Button className="w-full" type="submit" disabled={isLoading}>
-            {isLoading && (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            {type === "login" && "Sign In"}
-            {type === "register" && "Sign Up"}
-            {type === "reset" && "Reset Password"}
-          </Button>
-        </form>
-      </Form>
-    </div>
+        </div>
+      )}
+      <LoadingButton className="w-full">
+        {type === "login" && "Sign In"}
+        {type === "register" && "Sign Up"}
+        {type === "reset" && "Reset Password"}
+      </LoadingButton>
+    </form>
   )
 } 

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { useRouter } from 'next/navigation'
 import { Icons } from "@/components/icons"
+import { AuthCard } from '@/components/auth/auth-card'
 
 export default function UpdatePasswordPage() {
   const [isVerified, setIsVerified] = useState(false)
@@ -102,46 +103,52 @@ export default function UpdatePasswordPage() {
   }
 
   if (!isVerified) {
-    return <div className="flex justify-center items-center min-h-screen">
-      <Icons.spinner className="h-6 w-6 animate-spin" />
-      <span className="ml-2">Verifying session...</span>
-    </div>
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Icons.spinner className="h-6 w-6 animate-spin" />
+          <span className="text-sm text-muted-foreground">
+            Verifying session...
+          </span>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <div className="w-full max-w-md p-8 space-y-6">
-        <h1 className="text-2xl font-bold text-center">Update Password</h1>
-        <form action={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
-              New Password
-            </label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Enter new password"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="confirmPassword" className="text-sm font-medium">
-              Confirm Password
-            </label>
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              placeholder="Confirm new password"
-              required
-            />
-          </div>
-          <LoadingButton>
-            Update Password
-          </LoadingButton>
-        </form>
-      </div>
-    </div>
+    <AuthCard 
+      title="Update Password"
+      description="Enter your new password below"
+    >
+      <form action={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            New Password
+          </label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Enter new password"
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="confirmPassword" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Confirm Password
+          </label>
+          <Input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm new password"
+            required
+          />
+        </div>
+        <LoadingButton className="w-full">
+          Update Password
+        </LoadingButton>
+      </form>
+    </AuthCard>
   )
 } 

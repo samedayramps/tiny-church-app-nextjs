@@ -4,6 +4,8 @@ import { useToast } from '@/hooks/use-toast'
 import { resetPassword } from './actions'
 import { Input } from '@/components/ui/input'
 import { LoadingButton } from '@/components/ui/loading-button'
+import { AuthCard } from '@/components/auth/auth-card'
+import Link from 'next/link'
 
 export default function ResetPasswordPage() {
   const { toast } = useToast()
@@ -35,27 +37,35 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <div className="w-full max-w-md p-8 space-y-6">
-        <h1 className="text-2xl font-bold text-center">Reset Password</h1>
-        <form action={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">
-              Email
-            </label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-          <LoadingButton>
-            Send Reset Link
-          </LoadingButton>
-        </form>
+    <AuthCard 
+      title="Reset Password"
+      description="Enter your email to receive a password reset link"
+    >
+      <form action={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Email
+          </label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="name@example.com"
+            required
+          />
+        </div>
+        <LoadingButton className="w-full">
+          Send Reset Link
+        </LoadingButton>
+      </form>
+      <div className="text-center text-sm">
+        <Link 
+          href="/login"
+          className="text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+        >
+          Back to login
+        </Link>
       </div>
-    </div>
+    </AuthCard>
   )
 } 
