@@ -1,0 +1,144 @@
+Custom Technical Instructions for Developing the SuperAdmin App
+
+1. Environment Setup
+
+	1.	Languages & Frameworks:
+	•	Use Next.js with the App Router for the frontend.
+	•	Use TypeScript for strict typing and maintainable code.
+	•	Use Supabase for backend services, including database and authentication.
+	2.	Libraries:
+	•	UI: ShadCN UI with Radix UI for a consistent, accessible component library.
+	•	Error Tracking: Integrate Sentry to monitor and debug issues.
+	•	State Management: Use built-in React Context or Zustand for managing state.
+	3.	Database & Supabase:
+	•	Rely on Supabase’s built-in PostgreSQL database with RLS (Row-Level Security).
+	•	Use Supabase’s authentication system for managing user roles and access.
+
+2. Authentication
+
+	1.	Role-Based Access Control (RBAC):
+	•	Assign the superadmin role during user creation using Supabase’s custom auth.users table or metadata.
+	•	Implement policies for database tables to restrict access based on the user’s role.
+	•	Example Policy:
+
+CREATE POLICY "Allow superadmin access"
+ON public.audit_logs
+FOR ALL
+USING (auth.role() = 'superadmin');
+
+
+	2.	Middleware:
+	•	Implement a middleware function to check for auth.role() === 'superadmin' before allowing access to the app’s pages.
+
+3. App Architecture
+
+	1.	Folder Structure:
+
+src/
+  app/
+    dashboard/     # Main SuperAdmin dashboard page
+    auth/          # Auth-related pages (login/logout)
+  components/       # Reusable UI components
+  lib/              # Supabase client, API utilities
+  hooks/            # Custom React hooks
+  styles/           # Global styles with Tailwind
+  utils/            # Helper functions
+  types/            # TypeScript types and interfaces
+
+
+	2.	Page Setup:
+	•	Dashboard:
+	•	Display an overview of users, audit logs, and system stats.
+	•	User Management:
+	•	CRUD interface for managing users and roles.
+	•	Audit Logs:
+	•	Filterable list of actions performed in the system.
+	•	System Info:
+	•	View Supabase schema versions and configuration details.
+
+4. Database Integration
+
+	1.	Supabase Setup:
+	•	Add RLS policies to secure data access.
+	•	Use database relationships to link tables (e.g., organization_id).
+	•	Example relationship for audit_logs:
+
+ALTER TABLE audit_logs
+ADD CONSTRAINT fk_organization_id FOREIGN KEY (organization_id)
+REFERENCES organizations(id);
+
+
+	2.	Supabase Client:
+	•	Configure the client in lib/supabase.ts:
+
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+
+export default supabase;
+
+5. UI/UX Design
+
+	1.	UI Framework:
+	•	Use ShadCN UI components for dropdowns, modals, and tables.
+	•	Apply Radix UI primitives for accessible interactions.
+	2.	Responsive Design:
+	•	Follow mobile-first principles with Tailwind CSS.
+	•	Add dark mode support.
+	3.	Interactive Data Views:
+	•	Implement searchable and filterable tables for audit_logs, users, etc.
+	•	Add charts (e.g., with Chart.js or Recharts) for system metrics.
+
+6. Advanced Features
+
+	1.	Activity Logs:
+	•	Display filtered logs with real-time updates using Supabase realtime subscriptions.
+	•	Example:
+
+const { data } = useSWR('audit_logs', fetchLogs);
+
+async function fetchLogs() {
+  const { data } = await supabase.from('audit_logs').select('*');
+  return data;
+}
+
+
+	2.	Notifications:
+	•	Push important updates to the superadmin via toast notifications or a notification center.
+	3.	Error Monitoring:
+	•	Use Sentry to log frontend and backend errors.
+
+7. Testing & Deployment
+
+	1.	Testing:
+	•	Use Jest and React Testing Library for unit tests.
+	•	Integrate Playwright for end-to-end testing of admin workflows.
+	2.	Deployment:
+	•	Deploy to Vercel for scalable hosting.
+	•	Use environment variables for Supabase keys:
+
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+
+	3.	Error Logging in Production:
+	•	Configure Sentry for frontend and backend.
+
+8. Security
+
+	1.	RLS in Supabase:
+	•	Ensure all data access respects RLS policies.
+	2.	Environment Variables:
+	•	Never expose sensitive keys in the frontend. Use server-side functions when needed.
+	3.	Authentication & Authorization:
+	•	Secure sensitive routes with role checks in Next.js middleware.
+
+9. Documentation
+
+	1.	Create developer documentation for:
+	•	Setting up the project.
+	•	Managing users and roles.
+	•	Deploying the app.
+	2.	Use tools like Storybook for UI documentation.
+
+Let me know if you need help with any specific steps!
