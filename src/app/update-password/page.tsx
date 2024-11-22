@@ -9,28 +9,53 @@ import { useRouter } from 'next/navigation'
 
 export default function UpdatePasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [isVerified, setIsVerified] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
   const supabase = createClient()
 
-  // Check if user is authenticated
+  // Check if user has a valid recovery session
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
+      if (error) {
+        console.error('Session error:', error)
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to verify session. Please try again."
+        })
+        router.push('/reset-password')
+        return
+      }
+
       if (!session) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Invalid or expired reset link. Please try again."
+          description: "Invalid or expired reset link. Please request a new one."
         })
         router.push('/reset-password')
+        return
       }
+
+      setIsVerified(true)
     }
     
     checkSession()
   }, [router, supabase.auth, toast])
 
   async function handleSubmit(formData: FormData) {
+    if (!isVerified) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please verify your session before updating password"
+      })
+      return
+    }
+
     setIsLoading(true)
     
     const password = formData.get('password') as string
@@ -60,21 +85,29 @@ export default function UpdatePasswordPage() {
         return
       }
 
+      // Sign out after password update
+      await supabase.auth.signOut()
+
       toast({
         title: "Success",
-        description: "Password updated successfully"
+        description: "Password updated successfully. Please sign in with your new password."
       })
       
       router.push('/login')
-    } catch {
+    } catch (error) {
+      console.error('Password update error:', error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Something went wrong. Please try again."
+        description: "Failed to update password. Please try again."
       })
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (!isVerified) {
+    return <div>Verifying session...</div>
   }
 
   return (
