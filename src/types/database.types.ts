@@ -968,6 +968,48 @@ export type Database = {
         }
         Relationships: []
       }
+      system_settings: {
+        Row: {
+          allowed_file_types: string | null
+          created_at: string | null
+          enable_audit_logs: boolean | null
+          id: string
+          maintenance_mode: boolean | null
+          max_upload_size: string | null
+          retention_period: string | null
+          site_description: string | null
+          site_name: string
+          support_email: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_file_types?: string | null
+          created_at?: string | null
+          enable_audit_logs?: boolean | null
+          id?: string
+          maintenance_mode?: boolean | null
+          max_upload_size?: string | null
+          retention_period?: string | null
+          site_description?: string | null
+          site_name: string
+          support_email?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_file_types?: string | null
+          created_at?: string | null
+          enable_audit_logs?: boolean | null
+          id?: string
+          maintenance_mode?: boolean | null
+          max_upload_size?: string | null
+          retention_period?: string | null
+          site_description?: string | null
+          site_name?: string
+          support_email?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           created_at: string | null

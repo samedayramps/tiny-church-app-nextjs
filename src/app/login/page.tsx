@@ -7,7 +7,7 @@ export default function LoginPage() {
   return (
     <AuthCard
       title="Welcome back"
-      description="Enter your email to sign in to your account"
+      description="Sign in to your Tiny Church account"
     >
       <AuthForm type="login" action={login} />
       <div className="space-y-2 text-center text-sm">

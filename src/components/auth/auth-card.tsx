@@ -1,3 +1,5 @@
+import { Logo } from "@/components/ui/logo"
+
 interface AuthCardProps {
   children: React.ReactNode
   title: string
@@ -15,6 +17,9 @@ export function AuthCard({ children, title, description }: AuthCardProps) {
           )}
         </div>
         {children}
+        <div className="pt-6 border-t">
+          <Logo />
+        </div>
       </div>
     </div>
   )

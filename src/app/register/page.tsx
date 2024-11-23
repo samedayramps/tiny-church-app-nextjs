@@ -7,7 +7,7 @@ export default function RegisterPage() {
   return (
     <AuthCard
       title="Create an account" 
-      description="Enter your email below to create your account"
+      description="Get started with Tiny Church"
     >
       <AuthForm type="register" action={signup} />
       <div className="text-center text-sm">
