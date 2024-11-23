@@ -1,30 +1,31 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
-import type { Database } from '@/types/database.types'
+import { createServerClient } from '@/utils/supabase/server'
+import { successResponse, errorResponse } from '@/utils/api-response'
+
+export const dynamic = 'force-dynamic' // Opt out of caching
 
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const supabase = createServerClient()
+  const { id } = params
 
   try {
     const { data, error } = await supabase
       .from('audit_logs')
-      .select('*')
-      .eq('id', params.id)
+      .select('*, user:members(*)')
+      .eq('id', id)
       .single()
     
-    if (error) {
-      console.error('Database error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) throw error
+
+    if (!data) {
+      return errorResponse(null, 'Audit log not found', 404)
     }
 
-    return NextResponse.json(data)
+    return successResponse(data)
   } catch (error) {
-    console.error('Server error:', error)
-    return NextResponse.json({ error: 'Error fetching audit log' }, { status: 500 })
+    return errorResponse(error, 'Error fetching audit log')
   }
 }
 
@@ -32,22 +33,19 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const supabase = createServerClient()
+  const { id } = params
 
   try {
     const { error } = await supabase
       .from('audit_logs')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       
-    if (error) {
-      console.error('Database error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+    if (error) throw error
 
-    return NextResponse.json({ message: 'Audit log deleted successfully' })
+    return successResponse({ message: 'Audit log deleted successfully' })
   } catch (error) {
-    console.error('Server error:', error)
-    return NextResponse.json({ error: 'Error deleting audit log' }, { status: 500 })
+    return errorResponse(error, 'Error deleting audit log')
   }
 } 

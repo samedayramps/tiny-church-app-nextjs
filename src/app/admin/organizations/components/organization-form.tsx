@@ -1,113 +1,68 @@
 'use client'
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { toast } from "@/hooks/use-toast"
-import { createOrganization, editOrganization } from "../actions"
-import { useRouter } from "next/navigation"
-import type { Organization } from "../types"
+import { ResourceForm } from '@/components/admin/resource-form'
+import { organizationSchema } from '../types'
+import type { Organization, OrganizationFormValues } from '../types'
+import { useRouter } from 'next/navigation'
+import { toast } from '@/hooks/use-toast'
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Organization name must be at least 2 characters.",
-  })
-})
+// Define fields with literal type for name
+const fields = [
+  {
+    name: 'name' as const, // Type assertion to match schema
+    label: 'Organization Name',
+    placeholder: 'Enter organization name',
+    required: true,
+  }
+] satisfies { 
+  name: keyof OrganizationFormValues
+  label: string
+  placeholder?: string
+  required?: boolean 
+}[]
 
 interface OrganizationFormProps {
-  organization?: Organization
+  organization?: Organization | null
+  onSubmit: (formData: FormData) => Promise<{ success: boolean; error?: string }>
 }
 
-export function OrganizationForm({ organization }: OrganizationFormProps) {
+export function OrganizationForm({ organization, onSubmit }: OrganizationFormProps) {
   const router = useRouter()
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: organization?.name || "",
-    },
-  })
+  const defaultValues = organization ? {
+    name: organization.name,
+    created_at: organization.created_at || undefined
+  } : undefined
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      let result;
-      
-      if (organization) {
-        result = await editOrganization(organization.id, values)
-      } else {
-        result = await createOrganization(values)
-      }
+  const handleSubmit = async (values: OrganizationFormValues) => {
+    const formData = new FormData()
+    formData.append('name', values.name)
+    if (values.created_at) {
+      formData.append('created_at', values.created_at)
+    }
 
-      if (result.error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.error,
-        })
-        return
-      }
-      
+    const result = await onSubmit(formData)
+    
+    if (result.success) {
       toast({
         title: "Success",
-        description: organization 
-          ? "Organization updated successfully."
-          : "Organization created successfully.",
+        description: organization ? "Organization updated successfully" : "Organization created successfully"
       })
       router.push('/admin/organizations')
-    } catch (error) {
-      console.error('Error saving organization:', error)
+    } else {
       toast({
-        variant: "destructive",
         title: "Error",
-        description: error instanceof Error 
-          ? error.message 
-          : "Something went wrong. Please try again.",
+        description: result.error || "Something went wrong",
+        variant: "destructive"
       })
     }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter organization name" {...field} />
-              </FormControl>
-              <FormDescription>
-                This is your organization&apos;s displayed name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="flex gap-4">
-          <Button type="submit">
-            {organization ? 'Update' : 'Create'} Organization
-          </Button>
-          <Button 
-            type="button" 
-            variant="outline"
-            onClick={() => router.push('/admin/organizations')}
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </Form>
+    <ResourceForm
+      schema={organizationSchema}
+      defaultValues={defaultValues}
+      onSubmit={handleSubmit}
+      fields={fields}
+    />
   )
 } 

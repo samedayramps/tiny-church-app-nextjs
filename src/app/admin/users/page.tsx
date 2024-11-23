@@ -4,7 +4,7 @@ import { DataTable } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import type { Database } from '@/types/supabase-types'
+import type { Database } from '@/types/database.types'
 import type { TableRow } from '@/types/table'
 
 type UserWithRelations = Database['public']['Tables']['members']['Row'] & {
@@ -52,8 +52,17 @@ const columns = [
   },
 ]
 
-export default async function UsersPage() {
+interface PageProps {
+  searchParams?: {
+    page?: string
+  }
+}
+
+export default async function UsersPage({ searchParams }: PageProps) {
   const supabase = createServerComponentClient<Database>({ cookies })
+  
+  // Get current page from URL params or default to 1
+  const currentPage = Number(searchParams?.page) || 1
   
   const { data: users } = await supabase
     .from('members')
@@ -76,6 +85,7 @@ export default async function UsersPage() {
         columns={columns}
         data={(users as UserWithRelations[]) || []}
         searchKey="email"
+        currentPage={currentPage}
       />
     </div>
   )

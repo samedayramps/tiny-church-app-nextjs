@@ -3,7 +3,7 @@
 import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-import type { Database } from '@/types/supabase-types'
+import type { Database } from '@/types/database.types'
 
 export async function downloadFile(fileId: string) {
   const supabase = createServerActionClient<Database>({ cookies })

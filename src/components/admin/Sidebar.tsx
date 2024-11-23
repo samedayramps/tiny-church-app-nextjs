@@ -30,11 +30,7 @@ const navigation = [
   {
     name: 'Organizations',
     href: '/admin/organizations',
-    icon: Building2,
-    children: [
-      { name: 'All Organizations', href: '/admin/organizations' },
-      { name: 'Create Organization', href: '/admin/organizations/create' }
-    ]
+    icon: Building2
   },
   {
     name: 'User Management',

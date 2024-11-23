@@ -1,10 +1,10 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
-import type { Database } from '@/types/database.types'
+import { createServerClient } from '@/utils/supabase/server'
+import { successResponse, errorResponse } from '@/utils/api-response'
+
+export const dynamic = 'force-dynamic' // Opt out of caching
 
 export async function GET() {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const supabase = createServerClient()
 
   try {
     const { data, error } = await supabase
@@ -14,14 +14,14 @@ export async function GET() {
     
     if (error) throw error
 
-    return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'Error fetching API keys' }, { status: 500 })
+    return successResponse(data)
+  } catch (error) {
+    return errorResponse(error, 'Error fetching API keys')
   }
 }
 
 export async function POST(request: Request) {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const supabase = createServerClient()
   
   try {
     const body = await request.json()
@@ -32,8 +32,8 @@ export async function POST(request: Request) {
       
     if (error) throw error
 
-    return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'Error creating API key' }, { status: 500 })
+    return successResponse(data, 201)
+  } catch (error) {
+    return errorResponse(error, 'Error creating API key')
   }
 } 

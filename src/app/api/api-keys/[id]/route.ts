@@ -1,26 +1,31 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
-import type { Database } from '@/types/database.types'
+import { createServerClient } from '@/utils/supabase/server'
+import { successResponse, errorResponse } from '@/utils/api-response'
+
+export const dynamic = 'force-dynamic' // Opt out of caching
 
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const supabase = createServerClient()
+  const { id } = params
 
   try {
     const { data, error } = await supabase
       .from('api_keys')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
     
     if (error) throw error
 
-    return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'Error fetching API key' }, { status: 500 })
+    if (!data) {
+      return errorResponse(null, 'API key not found', 404)
+    }
+
+    return successResponse(data)
+  } catch (error) {
+    return errorResponse(error, 'Error fetching API key')
   }
 }
 
@@ -28,21 +33,27 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const supabase = createServerClient()
+  const { id } = params
   
   try {
     const body = await request.json()
     const { data, error } = await supabase
       .from('api_keys')
       .update(body)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
+      .single()
       
     if (error) throw error
 
-    return NextResponse.json(data)
-  } catch {
-    return NextResponse.json({ error: 'Error updating API key' }, { status: 500 })
+    if (!data) {
+      return errorResponse(null, 'API key not found', 404)
+    }
+
+    return successResponse(data)
+  } catch (error) {
+    return errorResponse(error, 'Error updating API key')
   }
 }
 
@@ -50,18 +61,19 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const supabase = createServerClient()
+  const { id } = params
 
   try {
     const { error } = await supabase
       .from('api_keys')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       
     if (error) throw error
 
-    return NextResponse.json({ message: 'API key deleted successfully' })
-  } catch {
-    return NextResponse.json({ error: 'Error deleting API key' }, { status: 500 })
+    return successResponse({ message: 'API key deleted successfully' })
+  } catch (error) {
+    return errorResponse(error, 'Error deleting API key')
   }
 } 

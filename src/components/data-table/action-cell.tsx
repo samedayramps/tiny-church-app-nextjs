@@ -11,10 +11,14 @@ export function ActionCell({ row }: ActionCellProps<Organization>) {
       <TableActions 
         row={row}
         onEdit={async () => {
-          await editOrganization(row.original.id, {
-            name: row.original.name,
-            status: row.original.status || 'active'
-          })
+          const formData = new FormData()
+          formData.append('name', row.original.name)
+          
+          if ('status' in row.original && row.original.status) {
+            formData.append('status', String(row.original.status))
+          }
+          
+          await editOrganization(row.original.id, formData)
         }}
         onDelete={async () => {
           await deleteOrganization(row.original.id)

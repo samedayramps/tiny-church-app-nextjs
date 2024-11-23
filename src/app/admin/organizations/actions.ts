@@ -1,77 +1,22 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { z } from 'zod'
-import type { Database } from '@/types/database.types'
+import { createResource, editResource, deleteResource } from '@/lib/actions/resource'
 
-const organizationSchema = z.object({
-  name: z.string().min(2, {
-    message: "Organization name must be at least 2 characters.",
+const TABLE_NAME = 'organizations' as const
+const REDIRECT_PATH = '/admin/organizations'
+
+export async function createOrganization(formData: FormData) {
+  return createResource(TABLE_NAME, REDIRECT_PATH, {
+    name: formData.get('name') as string
   })
-})
-
-export async function createOrganization(data: { name: string }) {
-  const supabase = createServerActionClient<Database>({ cookies })
-  
-  try {
-    const validated = organizationSchema.parse(data)
-    
-    const { error } = await supabase
-      .from('organizations')
-      .insert({
-        name: validated.name
-      })
-    
-    if (error) throw error
-    
-    revalidatePath('/admin/organizations')
-    return { success: true }
-  } catch (error) {
-    console.error('Failed to create organization:', error)
-    return { error: 'Failed to create organization' }
-  }
 }
 
-export async function editOrganization(id: string, data: { name: string }) {
-  const supabase = createServerActionClient<Database>({ cookies })
-  
-  try {
-    const validated = organizationSchema.parse(data)
-    
-    const { error } = await supabase
-      .from('organizations')
-      .update({
-        name: validated.name
-      })
-      .eq('id', id)
-    
-    if (error) throw error
-    
-    revalidatePath('/admin/organizations')
-    return { success: true }
-  } catch (error) {
-    console.error('Failed to update organization:', error)
-    return { error: 'Failed to update organization' }
-  }
+export async function editOrganization(id: string, formData: FormData) {
+  return editResource(TABLE_NAME, REDIRECT_PATH, id, {
+    name: formData.get('name') as string
+  })
 }
 
 export async function deleteOrganization(id: string) {
-  const supabase = createServerActionClient<Database>({ cookies })
-  
-  try {
-    const { error } = await supabase
-      .from('organizations')
-      .delete()
-      .eq('id', id)
-    
-    if (error) throw error
-    
-    revalidatePath('/admin/organizations')
-    return { success: true }
-  } catch (error) {
-    console.error('Failed to delete organization:', error)
-    return { error: 'Failed to delete organization' }
-  }
+  return deleteResource(TABLE_NAME, REDIRECT_PATH, id)
 } 

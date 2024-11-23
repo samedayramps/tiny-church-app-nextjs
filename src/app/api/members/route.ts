@@ -4,7 +4,10 @@ import { NextResponse } from 'next/server'
 import type { Database } from '@/types/database.types'
 
 export async function GET() {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const cookieStore = await cookies()
+  const supabase = createRouteHandlerClient<Database>({ 
+    cookies: () => cookieStore 
+  })
 
   try {
     const { data, error } = await supabase
@@ -13,13 +16,19 @@ export async function GET() {
     
     if (error) {
       console.error('Database error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json(data)
-  } catch (error) {
-    console.error('Server error:', error)
-    return NextResponse.json({ error: 'Error fetching members' }, { status: 500 })
+  } catch (err) {
+    console.error('Server error:', err)
+    return NextResponse.json(
+      { error: 'Error fetching members' },
+      { status: 500 }
+    )
   }
 }
 

@@ -1,30 +1,29 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
-import type { Database } from '@/types/database.types'
+import { createServerClient } from '@/utils/supabase/server'
+import { successResponse, errorResponse } from '@/utils/api-response'
 
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const supabase = createServerClient()
+  const { id } = params
 
   try {
     const { data, error } = await supabase
       .from('organizations')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
     
-    if (error) {
-      console.error('Database error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) throw error
+
+    if (!data) {
+      return errorResponse(null, 'Organization not found', 404)
     }
 
-    return NextResponse.json(data)
+    return successResponse(data)
   } catch (error) {
-    console.error('Server error:', error)
-    return NextResponse.json({ error: 'Error fetching organization' }, { status: 500 })
+    return errorResponse(error, 'Error fetching organization')
   }
 }
 
@@ -32,25 +31,27 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const supabase = createServerClient()
+  const { id } = params
   
   try {
     const body = await request.json()
     const { data, error } = await supabase
       .from('organizations')
       .update(body)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
+      .single()
       
-    if (error) {
-      console.error('Database error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) throw error
+
+    if (!data) {
+      return errorResponse(null, 'Organization not found', 404)
     }
 
-    return NextResponse.json(data)
+    return successResponse(data)
   } catch (error) {
-    console.error('Server error:', error)
-    return NextResponse.json({ error: 'Error updating organization' }, { status: 500 })
+    return errorResponse(error, 'Error updating organization')
   }
 }
 
@@ -58,22 +59,19 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const supabase = createRouteHandlerClient<Database>({ cookies })
+  const supabase = createServerClient()
+  const { id } = params
 
   try {
     const { error } = await supabase
       .from('organizations')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       
-    if (error) {
-      console.error('Database error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+    if (error) throw error
 
-    return NextResponse.json({ message: 'Organization deleted successfully' })
+    return successResponse({ message: 'Organization deleted successfully' })
   } catch (error) {
-    console.error('Server error:', error)
-    return NextResponse.json({ error: 'Error deleting organization' }, { status: 500 })
+    return errorResponse(error, 'Error deleting organization')
   }
 } 
